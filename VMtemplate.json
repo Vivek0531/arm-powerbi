@@ -1,0 +1,525 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "loadBalancers_powerbi_us2_gateway_lb_name": {
+            "defaultValue": "powerbi-us2-gateway-lb",
+            "type": "String"
+        },
+        "virtualMachines_powerbi_us2_gateway_vm1_name": {
+            "defaultValue": "powerbi-us2-gateway-vm1",
+            "type": "String"
+        },
+        "virtualMachines_powerbi_us2_gateway_vm2_name": {
+            "defaultValue": "powerbi-us2-gateway-vm2",
+            "type": "String"
+        },
+        "networkInterfaces_powerbi_us2_gateway_466_name": {
+            "defaultValue": "powerbi-us2-gateway-466",
+            "type": "String"
+        },
+        "networkInterfaces_powerbi_us2_gateway_747_name": {
+            "defaultValue": "powerbi-us2-gateway-747",
+            "type": "String"
+        },
+        "publicIPAddresses_powerbi_us2_gateway_pubip_name": {
+            "defaultValue": "powerbi-us2-gateway-pubip",
+            "type": "String"
+        },
+        "publicIPAddresses_powerbi_us2_gateway_vm1_ip_name": {
+            "defaultValue": "powerbi-us2-gateway-vm1-ip",
+            "type": "String"
+        },
+        "publicIPAddresses_powerbi_us2_gateway_vm2_ip_name": {
+            "defaultValue": "powerbi-us2-gateway-vm2-ip",
+            "type": "String"
+        },
+        "virtualNetworks_powerbi_us2_gateway_base_vnet_name": {
+            "defaultValue": "powerbi-us2-gateway-base-vnet",
+            "type": "String"
+        },
+        "networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name": {
+            "defaultValue": "powerbi-us2-gateway-vm1-nsg",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name')]",
+            "location": "eastus",
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('publicIPAddresses_powerbi_us2_gateway_pubip_name')]",
+            "location": "eastus",
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "zones": [
+                "1",
+                "2",
+                "3"
+            ],
+            "properties": {
+                "ipAddress": "52.224.39.69",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('publicIPAddresses_powerbi_us2_gateway_vm1_ip_name')]",
+            "location": "eastus",
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "properties": {
+                "ipAddress": "104.41.135.176",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('publicIPAddresses_powerbi_us2_gateway_vm2_ip_name')]",
+            "location": "eastus",
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "properties": {
+                "ipAddress": "137.117.96.63",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name')]",
+            "location": "eastus",
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2020-12-01",
+            "name": "[parameters('virtualMachines_powerbi_us2_gateway_vm1_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_powerbi_us2_gateway_466_name'))]"
+            ],
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_powerbi_us2_gateway_vm1_name'), '_OsDisk_1_8ff30263ca434329a78c1f2a04305613')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "StandardSSD_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_powerbi_us2_gateway_vm1_name'), '_OsDisk_1_8ff30263ca434329a78c1f2a04305613'))]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "powerbi-us2-gat",
+                    "adminUsername": "powerbi",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS",
+                            "enableHotpatching": false
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_powerbi_us2_gateway_466_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2020-12-01",
+            "name": "[parameters('virtualMachines_powerbi_us2_gateway_vm2_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_powerbi_us2_gateway_747_name'))]"
+            ],
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_powerbi_us2_gateway_vm2_name'), '_disk1_eeebaaeaee8a468ba634403f857fe71a')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_powerbi_us2_gateway_vm2_name'), '_disk1_eeebaaeaee8a468ba634403f857fe71a'))]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "powerbi-us2-gat",
+                    "adminUsername": "powerbi",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS",
+                            "enableHotpatching": false
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_powerbi_us2_gateway_747_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name'), '/RDP')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name'))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "3389",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 300,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.0.0.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers/backendAddressPools",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '/', parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '-bepool')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_powerbi_us2_gateway_lb_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'))]"
+            ],
+            "properties": {
+                "loadBalancerBackendAddresses": [
+                    {
+                        "name": "f1b4cbbd-05e3-4ead-b2e6-caa71f992438",
+                        "properties": {
+                            "ipAddress": "52.224.39.69",
+                            "virtualNetwork": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkInterfaces_powerbi_us2_gateway_747_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_vm2_ip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'), 'default')]"
+            ],
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.5",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_vm2_ip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'), 'default')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('loadBalancers_powerbi_us2_gateway_lb_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_pubip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'))]",
+                "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_powerbi_us2_gateway_lb_name'), concat(parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '-bepool'))]"
+            ],
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "LoadBalancerFrontEnd",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_pubip_name'))]"
+                            },
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[concat(parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '-bepool')]",
+                        "properties": {
+                            "loadBalancerBackendAddresses": [
+                                {
+                                    "name": "f1b4cbbd-05e3-4ead-b2e6-caa71f992438",
+                                    "properties": {
+                                        "ipAddress": "52.224.39.69",
+                                        "virtualNetwork": {
+                                            "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'))]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "[concat(parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '-tcprule')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_powerbi_us2_gateway_lb_name')), '/frontendIPConfigurations/LoadBalancerFrontEnd')]"
+                            },
+                            "frontendPort": 443,
+                            "backendPort": 443,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "protocol": "Tcp",
+                            "enableTcpReset": false,
+                            "loadDistribution": "Default",
+                            "disableOutboundSnat": true,
+                            "backendAddressPool": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_powerbi_us2_gateway_lb_name'), concat(parameters('loadBalancers_powerbi_us2_gateway_lb_name'), '-bepool'))]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_powerbi_us2_gateway_lb_name')), '/probes/powerbi-us2-gateway-hp')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "powerbi-us2-gateway-hp",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 80,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ],
+                "inboundNatRules": [],
+                "outboundRules": [],
+                "inboundNatPools": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkInterfaces_powerbi_us2_gateway_466_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_vm1_ip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'), 'default')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name'))]"
+            ],
+            "tags": {
+                "User": "viv",
+                "env": "Dev"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_powerbi_us2_gateway_vm1_ip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_powerbi_us2_gateway_base_vnet_name'), 'default')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_powerbi_us2_gateway_vm1_nsg_name'))]"
+                }
+            }
+        }
+    ]
+}
