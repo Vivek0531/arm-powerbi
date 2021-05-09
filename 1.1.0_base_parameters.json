@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dns1": {
+      "value": "10.240.192.150"
+    },
+    "dns2": {
+      "value": "10.240.192.151"
+    },
+    "gatewayPrefix": {
+      "value": "10.216.67.0/26"
+    },
+    "privatePrefix": {
+      "value": "10.216.67.0/24"
+    },
+    "publicPrefix": {
+      "value": "string"
+    },
+    "reservedPrefix": {
+      "value": "string"
+    },
+    "resourceGroupBase": {
+      "value": "string"
+    },
+    "resourceGroupBaseEdgeSvc": {
+      "value": "string"
+    },
+    "tagArchPath": {
+      "value": "string"
+    },
+    "tagCostCenter": {
+      "value": "string"
+    },
+    "tagDataClassification": {
+      "value": "string"
+    },
+    "tagEmissary": {
+      "value": "string"
+    },
+    "tagEnvironment": {
+      "value": "string"
+    },
+    "tagOwner": {
+      "value": "string"
+    },
+    "tagPCIData": {
+      "value": "string"
+    },
+    "tagSKMSServiceId": {
+      "value": "string"
+    },
+    "vnetPrefix": {
+      "value": "string"
+    }
+  }
+}

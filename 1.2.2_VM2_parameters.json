@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "tagValues": {
+        "value": {
+          "App": "VM1",
+          "Adobe.CostCenter": "103940",
+          "Adobe.ArchPath": "jenkins.App",
+          "Adobe.Environment": "prod",
+          "Adobe.DataClassification": "Confidential",
+          "Adobe.SKMSServiceId": "TBD",
+          "Adobe.Owner": "Jenkins",
+          "Adobe:LoadComment": "jenkins-server-VM"
+        }
+      },
+      "namePrefix": {
+        "value": "***"
+      },
+      "appDiskId": {
+        "value": ""
+      },
+      "Landscape": {
+        "value": "Stage"
+      },
+      "RegionPrefix": {
+        "value": "va7"
+      },
+      "accountname": {
+        "value": "ITCS"
+      },
+      "vmSize": {
+        "value": "Standard_D2as_v4"
+      },
+      "server1": {
+        "value": "10.216.67.0/24"
+      },
+      "resourceGroupBase": {
+        "value": "azr4781-va7-stage-powerbi-base"
+      },
+      "AMISource": {
+        "value": "/subscriptions/e456c427-7a9e-49ff-a7c8-ced660098138/resourceGroups/ImageFactoryProdShareRG/providers/Microsoft.Compute/galleries/ImageFactoryProdShareGallery/images/img_fact_centos_azure"
+      }
+    }
+  }
+  

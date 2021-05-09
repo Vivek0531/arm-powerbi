@@ -1,0 +1,47 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters":{
+      "tagValues": {
+        "value": {
+          "tagArchPath": {"value": "DPAAS.DataLake"},
+          "tagEmissary": {"value": "trusted"},
+          "tagEnvironment": {"value": "Stage"},
+          "tagOwner": {"value": "DataMart"},
+          "tagCostCenter": {"value": "104013"},
+          "tagSKMSServiceId": {"value": "317181"},
+          "tagDataClassification": {"value": "Confidential"},
+          "tagPCIData": {"value": "false"},
+          "vnetPrefix": {"value": "10.242.34.0/24"}
+        }
+      },
+      "namePrefix": {
+        "value": "***"
+      },
+      "appDiskId": {
+        "value": "/subscriptions/150afe60-722f-427d-b2f5-783a67a35d35/resourceGroups/AZR6619-VA7-JENKINS-PRD-BASE/providers/Microsoft.Compute/disks/azr6619-va7-Prod-server-jigrovertest011_disk3_c55dccf9462148f1a25f6721b0318119"
+      },
+      "Landscape": {
+        "value": "Stage"
+      },
+      "RegionPrefix": {
+        "value": "va7"
+      },
+      "accountname": {
+        "value": "**************"
+      },
+      "vmSize": {
+        "value": "Standard_D2as_v4"
+      },
+      "server1": {
+        "value": "10.218.100.50"
+      },
+      "resourceGroupBase": {
+        "value": "**********************"
+      },
+      "AMISource": {
+        "value": "/subscriptions/e456c427-7a9e-49ff-a7c8-ced660098138/resourceGroups/ImageFactoryProdShareRG/providers/Microsoft.Compute/galleries/ImageFactoryProdShareGallery/images/img_fact_centos_azure"
+      }
+    }
+  }
+  

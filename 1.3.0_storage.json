@@ -1,0 +1,127 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {    
+      "dns1": { "type": "string" },
+      "dns2": { "type": "string" },
+      "appPrefix": { "type": "string" },
+      "dbPrefix": { "type": "string" },
+      "privatePrefix": { "type": "string" },    
+      "gatewayPrefix": { "type": "string" },
+      "publicPrefix": { "type": "string" },
+      "resourceGroupBase": { "type": "string" },
+      "tagArchPath": { "type": "string" },
+      "tagEmissary": { "type": "string" },
+      "tagEnvironment": { "type": "string" },
+      "tagOwner": { "type": "string" },
+      "tagCostCenter": { "type": "string" },
+      "tagSKMSServiceId": { "type": "string" },
+      "tagDataClassification": { "type": "string" },
+      "tagPCIData": { "type": "string" },
+      "vnetPrefix": { "type": "string" }
+    },
+    "variables": {
+      "apiVersionStorage": "2019-06-01",
+      "shortenResourceGroupName": "[concat(string(first(take(split(toLower(resourceGroup().name), '-'), 2))), string(last(take(split(toLower(resourceGroup().name), '-'), 2))))]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "[variables('apiVersionStorage')]",
+        "kind": "StorageV2",
+        "name": "[concat(variables('shortenResourceGroupName'), 'standard')]",//Name should be validate
+        "location": "[resourceGroup().location]",
+        "sku": { "name": "Standard_RAGRS" },
+        "tags": {
+          "Adobe.ArchPath": "[parameters('tagArchPath')]",
+          "Adobe.Environment": "[parameters('tagEnvironment')]",
+          "Adobe.Owner": "[parameters('tagOwner')]",
+          "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+          "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+          "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+          "Adobe.PCIData": "[parameters('tagPCIData')]",
+          "emissary": "[parameters('tagEmissary')]"
+        },
+        "resources": [
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "name": "default/data",
+            "dependsOn": [ "[concat(variables('shortenResourceGroupName'), 'standard')]" ]
+          },
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "name": "default/provision",
+            "dependsOn": [ "[concat(variables('shortenResourceGroupName'), 'standard')]" ]
+          },
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "name": "default/scripts",
+            "dependsOn": [ "[concat(variables('shortenResourceGroupName'), 'standard')]" ]
+          },
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "name": "default/templates",
+            "dependsOn": [ "[concat(variables('shortenResourceGroupName'), 'standard')]" ]
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "[variables('apiVersionStorage')]",
+        "kind": "StorageV2",
+        "name": "alaris",
+        "location": "[resourceGroup().location]",
+        "sku": { "name": "Standard_RAGRS" },
+        "tags": {
+          "Adobe.ArchPath": "[parameters('tagArchPath')]",
+          "Adobe.Environment": "[parameters('tagEnvironment')]",
+          "Adobe.Owner": "[parameters('tagOwner')]",
+          "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+          "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+          "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+          "Adobe.PCIData": "[parameters('tagPCIData')]",
+          "emissary": "[parameters('tagEmissary')]"
+        },
+        "properties": {
+          "allowBlobPublicAccess": false,
+          "isHnsEnabled": true,
+          "networkAcls": {
+            "virtualNetworkRules": [
+              {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('resourceGroupBase'), '/providers/Microsoft.Network/virtualNetworks/', parameters('resourceGroupBase'), '-vnet', '/subnets/', parameters('resourceGroupBase'), '-app')]",
+                "action": "Allow"
+              },           
+              {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('resourceGroupBase'), '/providers/Microsoft.Network/virtualNetworks/', parameters('resourceGroupBase'), '-vnet', '/subnets/', parameters('resourceGroupBase'), '-gateway')]",
+                "action": "Allow"
+              },
+              {
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('resourceGroupBase'), '/providers/Microsoft.Network/virtualNetworks/', parameters('resourceGroupBase'), '-vnet', '/subnets/', parameters('resourceGroupBase'), '-public')]",
+                "action": "Allow"
+              }
+            ],
+            "defaultAction": "Deny"
+          }
+        },
+        "resources": [
+          {
+            "type": "blobServices/containers",
+            "apiVersion": "[variables('apiVersionStorage')]",
+            "name": "default/airflow",
+            "dependsOn": [ "" ]
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+        "apiVersion": "[variables('apiVersionStorage')]",
+        "name": "alaris/default/airflow",
+        "dependsOn": [ "" ]
+      }
+    ]
+  }
+  

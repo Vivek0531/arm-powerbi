@@ -1,0 +1,414 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dns1": { "type": "string" },
+    "dns2": { "type": "string" },
+    "gatewayPrefix": { "type": "string" },
+    "privatePrefix": { "type": "string" },
+    "publicPrefix": { "type": "string" },
+    "reservedPrefix": { "type": "string" },
+    "resourceGroupBase": { "type": "string" },
+    "resourceGroupBaseEdgeSvc": { "type": "string" },
+    "tagArchPath": { "type": "string" },
+    "tagCostCenter": { "type": "string" },
+    "tagDataClassification": { "type": "string" },
+    "tagEmissary": { "type": "string" },
+    "tagEnvironment": { "type": "string" },
+    "tagOwner": { "type": "string" },
+    "tagPCIData": { "type": "string" },
+    "tagSKMSServiceId": { "type": "string" },
+    "vnetPrefix": { "type": "string" }
+  },
+  "variables": {
+    "apiVersionNetwork": "2019-11-01"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(toLower(resourceGroup().name), '-nsg-1')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "RDP_Crop",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "RDP",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1002,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Port_443",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Port_5671-5672",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "5671-5672",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1100,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Port_9350-9354",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "9350-9354",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1100,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(toLower(resourceGroup().name), '-nsg-gateway')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {
+        "securityRules": [
+        ]
+      }
+    },
+    { // should be validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(toLower(resourceGroup().name), '-nsg-private')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "[parameters('vnetPrefix')]",
+              "destinationAddressPrefix": "[parameters('vnetPrefix')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    { // should be validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(toLower(resourceGroup().name), '-nsg-public')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "[parameters('vnetPrefix')]",
+              "destinationAddressPrefix": "[parameters('vnetPrefix')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    { // should be validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(toLower(resourceGroup().name), '-nsg-reserved')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "[parameters('vnetPrefix')]",
+              "destinationAddressPrefix": "[parameters('vnetPrefix')]",
+              "access": "Allow",
+              "priority": 1000,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    { //should validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[concat(toLower(resourceGroup().name), '-rt-gateway')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {}
+    },
+    { //should validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[concat(toLower(resourceGroup().name), '-rt-private')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {}
+    },
+    { //should validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[concat(toLower(resourceGroup().name), '-rt-public')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {}
+    },
+    { //should validate
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[concat(toLower(resourceGroup().name), '-rt-reserved')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "properties": {}
+    },
+    //{
+    //  "apiVersion": "[variables('apiVersionNetwork')]",
+    //  "type": "Microsoft.Network/publicIPAddresses",
+    //  "name": "[concat(toLower(resourceGroup().name), '-ip-natgw')]",
+    //  "location": "[resourceGroup().location]",
+    //  "sku": { "name": "Standard" },
+    //  "properties": {
+    //    "idleTimeoutInMinutes": 4,
+    //    "publicIPAddressVersion": "IPv4",
+    //    "publicIPAllocationMethod": "Static"
+    //  }
+    //},
+    {
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/natGateways",
+      "name": "[concat(toLower(resourceGroup().name), '-natgw')]",
+      "location": "[resourceGroup().location]",
+      "sku": { "name": "Standard" },
+      "dependsOn": [ "[concat('Microsoft.Network/publicIPAddresses/', toLower(resourceGroup().name), '-ip-natgw')]" ],
+      "properties": {
+        "idleTimeoutInMinutes": 4,
+        "publicIpAddresses": [ { "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(toLower(resourceGroup().name), '-ip-natgw'))]" } ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(toLower(resourceGroup().name), '-vnet')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "Adobe.ArchPath": "[parameters('tagArchPath')]",
+        "Adobe.CostCenter": "[parameters('tagCostCenter')]",
+        "Adobe.DataClassification": "[parameters('tagDataClassification')]",
+        "Adobe.Environment": "[parameters('tagEnvironment')]",
+        "Adobe.Owner": "[parameters('tagOwner')]",
+        "Adobe.PCIData": "[parameters('tagPCIData')]",
+        "Adobe.SKMSServiceId": "[parameters('tagSKMSServiceId')]",
+        "emissary": "[parameters('tagEmissary')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/natGateways/', toLower(resourceGroup().name), '-natgw')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', toLower(resourceGroup().name), '-nsg-cdp')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', toLower(resourceGroup().name), '-nsg-gateway')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', toLower(resourceGroup().name), '-nsg-private')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', toLower(resourceGroup().name), '-nsg-public')]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', toLower(resourceGroup().name), '-nsg-reserved')]",
+        "[concat('Microsoft.Network/routeTables/', toLower(resourceGroup().name), '-rt-cdp')]",
+        "[concat('Microsoft.Network/routeTables/', toLower(resourceGroup().name), '-rt-gateway')]",
+        "[concat('Microsoft.Network/routeTables/', toLower(resourceGroup().name), '-rt-private')]",
+        "[concat('Microsoft.Network/routeTables/', toLower(resourceGroup().name), '-rt-public')]",
+        "[concat('Microsoft.Network/routeTables/', toLower(resourceGroup().name), '-rt-reserved')]"
+      ],
+      "properties": {
+        "addressSpace": { "addressPrefixes": [ "[parameters('vnetPrefix')]" ] },
+        "dhcpOptions": {
+          "dnsServers": [ "[parameters('dns1')]", "[parameters('dns2')]" ]
+        },
+        "subnets": [
+          {
+            "name": "[concat(toLower(resourceGroup().name), '-gateway')]",
+            "properties": {
+              "addressPrefix": "[parameters('gatewayPrefix')]",
+              "networkSecurityGroup": { "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(toLower(resourceGroup().name), '-nsg-gateway'))]" },
+              "routeTable": { "id": "[resourceId('Microsoft.Network/routeTables', concat(toLower(resourceGroup().name), '-rt-gateway'))]" },
+              "serviceEndpoints": [
+                {
+                  "service": "Microsoft.Storage",
+                  "locations": [ "[resourceGroup().location]" ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "[concat(toLower(resourceGroup().name), '-private')]",
+            "properties": {
+              "addressPrefix": "[parameters('privatePrefix')]",
+              "networkSecurityGroup": { "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(toLower(resourceGroup().name), '-nsg-private'))]" },
+              "routeTable": { "id": "[resourceId('Microsoft.Network/routeTables', concat(toLower(resourceGroup().name), '-rt-private'))]" },
+              "serviceEndpoints": [
+                {
+                  "service": "Microsoft.Storage",
+                  "locations": [ "[resourceGroup().location]" ]
+                }
+              ]
+            }
+          },
+          //{
+          //  "name": "[concat(toLower(resourceGroup().name), '-public')]",
+          //  "properties": {
+          //    "addressPrefix": "[parameters('publicPrefix')]",
+          //    "networkSecurityGroup": { "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(toLower(resourceGroup().name), '-nsg-public'))]" },
+          //    "routeTable": { "id": "[resourceId('Microsoft.Network/routeTables', concat(toLower(resourceGroup().name), '-rt-public'))]" },
+          //    "serviceEndpoints": [
+          //      {
+          //        "service": "Microsoft.Storage",
+          //        "locations": [ "[resourceGroup().location]" ]
+          //      }
+          //    ]
+          //  }
+          //},
+          { //should validate
+            "name": "[concat(toLower(resourceGroup().name), '-reserved')]",
+            "properties": {
+              "addressPrefix": "[parameters('reservedPrefix')]",
+              "networkSecurityGroup": { "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(toLower(resourceGroup().name), '-nsg-reserved'))]" },
+              "routeTable": { "id": "[resourceId('Microsoft.Network/routeTables', concat(toLower(resourceGroup().name), '-rt-reserved'))]" },
+              "serviceEndpoints": [
+                {
+                  "service": "Microsoft.Storage",
+                  "locations": [ "[resourceGroup().location]" ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersionNetwork')]",
+      "type": "Microsoft.Network/dnszones",
+      "name": "[concat(string(first(split(toLower(resourceGroup().name), '-'))), '.adobeitc.com')]",
+      "location": "global",
+      "properties": {}
+    }
+
+  ]
+}
